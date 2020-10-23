@@ -1,0 +1,46 @@
+owner = "EmbarkStudios"
+repo = "tokei"
+from = "release:latest"
+to = "today"
+date-format = "%Y-%m-%d"
+# skip-labels = ["dependencies"]
+
+[[categories]]
+title = "Updated Dependencies"
+labels = ["dependencies"]
+
+# [[include]]
+# owner = "rust-lang"
+# repo = "cargo"
+
+[template]
+string = """
+Version {{version}} ({{date}})
+============================
+
+{% for title, prs in categories %}
+{{ title }}
+-----------------------
+
+{% for pr in prs %}
+- [{{pr.title}}][{{pr.number}}]{% endfor %}
+
+{% endfor %}
+
+UNSORTED
+--------
+{% for pr in prs -%}
+- [{{pr.title}}][{{pr.number}}]
+{% endfor %}
+
+{% for _, prs in categories %}
+{% for pr in prs -%}
+[{{pr.number}}]: {{pr.html_url}}
+{% endfor %}
+{%- endfor %}
+
+{% for pr in prs -%}
+[{{pr.number}}]: {{pr.html_url}}
+{% endfor %}
+"""
+

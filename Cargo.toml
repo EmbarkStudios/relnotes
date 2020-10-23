@@ -1,0 +1,18 @@
+[package]
+name = "relnotes"
+version = "0.1.0"
+authors = ["Erin Power <erin.power@embark-studios.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+chrono = "0.4.19"
+octocrab = { path = "../octocrab" }
+once_cell = "1.4.1"
+regex = "1.4.1"
+serde = { version = "1.0.116", features = ["derive"] }
+structopt = "0.3.20"
+tera = "1.5.0"
+tokio = { version = "0.2.22", features = ["macros"] }
+toml = "0.5.7"
