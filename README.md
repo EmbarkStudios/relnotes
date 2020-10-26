@@ -38,9 +38,11 @@ skip-labels = []
 # A set of categories to populate the `categories` variable and to help
 # organise the release notes, if any of the issues labels match the set
 # of regexes in `labels` it will be placed in this category. (Priority matches
-# order in toml file).
+# order in toml file). Default: empty
 [[categories]]
+# The title of the category
 title = "Updated Dependencies"
+# Set of regexes to match against the labels.
 labels = ["dependencies"]
 
 # The template to generate the release notes. The `[template]` map accepts
