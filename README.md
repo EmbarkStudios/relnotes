@@ -60,20 +60,76 @@ Version {{version}} ({{date}})
 ============================
 
 {% for title, prs in categories %}
-{{ title }}
------------
-
-  {% for pr in prs %}
+## {{ title }}
+{%- for pr in prs %}
 - [{{pr.title}}]({{pr.html_url}})
   {%- endfor %}
 {% endfor %}
 
-Uncategorised PRs
------------------
+## Uncategorised PRs
 {% for pr in prs -%}
 - [{{pr.title}}]({{pr.html_url}})
 {% endfor %}
 """
+```
+
+## Example Output
+Here's an example of the above config being run on `XAMPPRocky/tokei`.
+
+```markdown
+Version v13.0.0 (2020-10-26)
+============================
+
+## Updated Dependencies
+- [Bump env_logger from 0.7.1 to 0.8.1](https://github.com/XAMPPRocky/tokei/pull/645)
+- [Bump serde from 1.0.116 to 1.0.117](https://github.com/XAMPPRocky/tokei/pull/644)
+- [Bump regex from 1.4.0 to 1.4.1](https://github.com/XAMPPRocky/tokei/pull/643)
+- [Bump git2 from 0.13.11 to 0.13.12](https://github.com/XAMPPRocky/tokei/pull/642)
+- [Bump serde_json from 1.0.58 to 1.0.59](https://github.com/XAMPPRocky/tokei/pull/641)
+- [Bump aho-corasick from 0.7.13 to 0.7.14](https://github.com/XAMPPRocky/tokei/pull/639)
+- [Bump regex from 1.3.9 to 1.4.0](https://github.com/XAMPPRocky/tokei/pull/638)
+- [Bump toml from 0.5.6 to 0.5.7](https://github.com/XAMPPRocky/tokei/pull/637)
+- [Bump serde_json from 1.0.57 to 1.0.58](https://github.com/XAMPPRocky/tokei/pull/636)
+- [Bump rayon from 1.4.0 to 1.4.1](https://github.com/XAMPPRocky/tokei/pull/635)
+- [Bump serde from 1.0.115 to 1.0.116](https://github.com/XAMPPRocky/tokei/pull/629)
+- [Bump git2 from 0.13.10 to 0.13.11](https://github.com/XAMPPRocky/tokei/pull/625)
+- [Bump crossbeam-channel from 0.4.2 to 0.4.4](https://github.com/XAMPPRocky/tokei/pull/623)
+- [Bump rayon from 1.3.1 to 1.4.0](https://github.com/XAMPPRocky/tokei/pull/617)
+- [Bump git2 from 0.13.6 to 0.13.10](https://github.com/XAMPPRocky/tokei/pull/615)
+- [Bump once_cell from 1.4.0 to 1.4.1](https://github.com/XAMPPRocky/tokei/pull/613)
+- [Bump clap from 2.33.2 to 2.33.3](https://github.com/XAMPPRocky/tokei/pull/610)
+- [Bump tera from 1.3.1 to 1.5.0](https://github.com/XAMPPRocky/tokei/pull/609)
+- [Bump serde from 1.0.114 to 1.0.115](https://github.com/XAMPPRocky/tokei/pull/608)
+- [Bump clap from 2.33.1 to 2.33.2](https://github.com/XAMPPRocky/tokei/pull/606)
+- [Bump dashmap from 3.11.9 to 3.11.10](https://github.com/XAMPPRocky/tokei/pull/603)
+- [Bump dashmap from 3.11.7 to 3.11.9](https://github.com/XAMPPRocky/tokei/pull/600)
+- [Bump serde_json from 1.0.56 to 1.0.57](https://github.com/XAMPPRocky/tokei/pull/596)
+- [Bump log from 0.4.8 to 0.4.11](https://github.com/XAMPPRocky/tokei/pull/590)
+- [Bump dirs from 2.0.2 to 3.0.1](https://github.com/XAMPPRocky/tokei/pull/584)
+- [Bump dashmap from 3.11.4 to 3.11.7](https://github.com/XAMPPRocky/tokei/pull/583)
+- [Bump serde_json from 1.0.55 to 1.0.56](https://github.com/XAMPPRocky/tokei/pull/579)
+- [Bump parking_lot from 0.10.2 to 0.11.0](https://github.com/XAMPPRocky/tokei/pull/575)
+- [Bump aho-corasick from 0.7.10 to 0.7.13](https://github.com/XAMPPRocky/tokei/pull/574)
+
+
+## Uncategorised PRs
+- [Add support for the Gleam language](https://github.com/XAMPPRocky/tokei/pull/646)
+- [Add jsonnet to language list](https://github.com/XAMPPRocky/tokei/pull/634)
+- [Add Stan language](https://github.com/XAMPPRocky/tokei/pull/633)
+- [Unify format](https://github.com/XAMPPRocky/tokei/pull/631)
+- [added beancount file format](https://github.com/XAMPPRocky/tokei/pull/630)
+- [add Tera templating language](https://github.com/XAMPPRocky/tokei/pull/627)
+- [Add support for TTCN-3](https://github.com/XAMPPRocky/tokei/pull/621)
+- [Add definition for DAML](https://github.com/XAMPPRocky/tokei/pull/620)
+- [Add Stylus language](https://github.com/XAMPPRocky/tokei/pull/619)
+- [Add LiveScript to languages.json](https://github.com/XAMPPRocky/tokei/pull/607)
+- [Added CodeQL language support](https://github.com/XAMPPRocky/tokei/pull/604)
+- [Fix very minor typo in README](https://github.com/XAMPPRocky/tokei/pull/601)
+- [feat: number formatted printing](https://github.com/XAMPPRocky/tokei/pull/591)
+- [Make --no-ignore imply all other --no-ignore- flags](https://github.com/XAMPPRocky/tokei/pull/588)
+- [Add summary information to output formats](https://github.com/XAMPPRocky/tokei/pull/580)
+- [Add support for ABNF grammar specs](https://github.com/XAMPPRocky/tokei/pull/577)
+- [Remove duplicated 'json' from --output](https://github.com/XAMPPRocky/tokei/pull/576)
 ```
 
 ## Contributing
