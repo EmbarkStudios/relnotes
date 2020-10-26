@@ -1,8 +1,9 @@
 # 📓 Relnotes: Automatic GitHub Release Notes
 
-[![Build Status](https://github.com/EmbarkStudios/relnotes/workflows/CI/badge.svg)](https://github.com/EmbarkStudios/relnotes/actions?workflow=CI)
+[![Build Status](https://github.com/EmbarkStudios/relnotes/workflows/CI/badge.svg)](https://github.com/EmbarkStudios/relnotes/actions?workflow=CI) <!-- 
 [![Crates.io](https://img.shields.io/crates/v/relnotes.svg)](https://crates.io/crates/tame-oauth)
 [![Docs](https://docs.rs/tame-oauth/badge.svg)](https://docs.rs/tame-oauth)
+-->
 [![Contributor Covenant](https://img.shields.io/badge/contributor%20covenant-v1.4%20adopted-ff69b4.svg)](CODE_OF_CONDUCT.md)
 [![Embark](https://img.shields.io/badge/embark-open%20source-blueviolet.svg)](https://embark.dev)
 
