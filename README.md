@@ -45,6 +45,21 @@ title = "Updated Dependencies"
 # Set of regexes to match against the labels.
 labels = ["dependencies"]
 
+# Additional repositories to include in the release notes. It has all
+# of the same properties as root, and inherits root's configuration
+# if omitted.
+[[includes]]
+owner = "owner"
+repo = "repo"
+# Gets the timeframe from the root repository rather than the `includes`
+# repository.
+uses-parent-for-timeframe = false
+# from = "release:latest"
+# to = "today"
+# date-format = "%Y-%m-%d"
+# skip-labels = []
+# [[includes.categories]]
+
 # The template to generate the release notes. The `[template]` map accepts
 # either a `string` literal or a `path` to the tera template to use. (Does
 # not accept both.)
