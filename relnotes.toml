@@ -1,4 +1,4 @@
-owner = "EmbarkStudios"
+owner = "XAMPPRocky"
 repo = "tokei"
 from = "release:latest"
 to = "today"
@@ -6,12 +6,13 @@ date-format = "%Y-%m-%d"
 # skip-labels = ["dependencies"]
 
 [[categories]]
-title = "Updated Dependencies"
-labels = ["dependencies"]
+title = "Compiler"
+labels = ["T-compiler"]
 
-# [[include]]
-# owner = "rust-lang"
-# repo = "cargo"
+[[includes]]
+owner = "rust-lang"
+repo = "rust"
+use-parent-for-timeframe = true
 
 [template]
 string = """
@@ -22,15 +23,24 @@ Version {{version}} ({{date}})
 {{ title }}
 -----------------------
 
-{% for pr in prs %}
-- [{{pr.title}}][{{pr.number}}]{% endfor %}
+    {% for pr in prs %}
+- [{{pr.title}}]({{pr.html_url}})
+    {%- endfor %}
+{% endfor %}
 
+{% for data in includes %}
+{{ data.title }}
+-----------------------
+
+    {% for pr in data.prs %}
+- [{{pr.title}}]({{pr.html_url}})
+    {%- endfor %}
 {% endfor %}
 
 UNSORTED
 --------
 {% for pr in prs -%}
-- [{{pr.title}}][{{pr.number}}]
+- [{{pr.title}}]({{pr.html_url}})
 {% endfor %}
 
 {% for _, prs in categories %}
