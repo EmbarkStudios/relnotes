@@ -46,8 +46,8 @@ title = "Updated Dependencies"
 labels = ["dependencies"]
 
 # Additional repositories to include in the release notes. It has all
-# of the same properties as root, and inherits root's configuration
-# if omitted.
+# of the same properties as root (except `includes`), and inherits root's
+# configuration if omitted.
 [[includes]]
 owner = "owner"
 repo = "repo"
