@@ -14,6 +14,13 @@ The relnotes has two required arguments, the version and a path the configuratio
 
 [tera]: https://tera.netlify.app
 
+## Basic Example
+```toml
+owner = "EmbarkStudios"
+repo = "relnotes"
+```
+
+
 ## Configuration File
 ```toml
 # GitHub repository owner

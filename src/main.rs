@@ -4,9 +4,9 @@
     clippy::all,
     clippy::doc_markdown,
     clippy::dbg_macro,
-    //clippy::todo,
+    clippy::todo,
     clippy::empty_enum,
-    //clippy::enum_glob_use,
+    clippy::enum_glob_use,
     clippy::pub_enum_variant_names,
     clippy::mem_forget,
     clippy::use_self,
@@ -17,7 +17,7 @@
     clippy::if_let_mutex,
     clippy::mismatched_target_os,
     clippy::await_holding_lock,
-    //clippy::match_on_vec_items,
+    clippy::match_on_vec_items,
     clippy::imprecise_flops,
     clippy::suboptimal_flops,
     clippy::lossy_float_literal,
@@ -39,17 +39,31 @@ mod config;
 mod data;
 
 use std::path::PathBuf;
+use std::sync::Arc;
 
 use structopt::StructOpt;
+use octocrab::Octocrab;
 
 #[derive(StructOpt)]
 /// Generate release notes for your project.
 struct Cli {
-    /// Path to the configuration file. Default: `./relnotes.toml`
+    /// Path to the configuration file. (Default: `./relnotes.toml`)
     #[structopt(short, long, parse(from_os_str))]
     config: Option<PathBuf>,
-    /// The version number of the release.
+    /// The GitHub authenication token. (Default: `None`)
+    #[structopt(short, long)]
+    token: Option<String>,
+    /// The version number for the release.
     version: String,
+}
+
+fn initialise_github(token: Option<String>) -> Result<Arc<Octocrab>, Box<dyn std::error::Error>> {
+    let mut builder = octocrab::Octocrab::builder();
+    let token = token.or_else(|| std::env::var("GITHUB_TOKEN").ok());
+    if token.is_some() {
+        builder = builder.personal_token(token.unwrap());
+    }
+    Ok(octocrab::initialise(builder)?)
 }
 
 #[tokio::main]
@@ -57,12 +71,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init_from_env(
         env_logger::Env::default().filter_or(env_logger::DEFAULT_FILTER_ENV, "info"),
     );
-    let mut builder = octocrab::Octocrab::builder();
-    let token = std::env::var("GITHUB_TOKEN").ok();
-    if token.is_some() {
-        builder = builder.personal_token(token.unwrap());
-    }
-    octocrab::initialise(builder)?;
 
     let cli = Cli::from_args();
     let path = cli
@@ -74,7 +82,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         toml::from_str::<config::Config>(&string).unwrap()
     };
 
-    let data = data::Data::from_config(cli.version, &config).await?;
+    let octocrab = initialise_github(cli.token)?;
+    let data = data::Data::from_config(octocrab, cli.version, &config).await?;
     println!(
         "{}",
         tera::Tera::one_off(

@@ -1,6 +1,6 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
-use octocrab::models::pulls::PullRequest;
+use octocrab::{Octocrab, models::pulls::PullRequest};
 
 #[derive(Debug, serde::Serialize)]
 pub struct Data {
@@ -17,11 +17,11 @@ pub struct Data {
 impl Data {
     #[async_recursion::async_recursion]
     pub async fn from_config(
+        octocrab: Arc<Octocrab>,
         version: String,
         config: &crate::config::Config,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         const DATE_FORMAT: &str = "%Y-%m-%d";
-        let octocrab = octocrab::instance();
         log::debug!("Config: {:?}", &config);
 
         let from_date = config.from.date_from_timeframe(&octocrab, &config).await?;
@@ -104,7 +104,7 @@ impl Data {
 
         let mut includes = Vec::new();
         for include in config.includes() {
-            includes.push(Self::from_config(version.clone(), &include).await?);
+            includes.push(Self::from_config(octocrab.clone(), version.clone(), &include).await?);
         }
 
         Ok(Self {
