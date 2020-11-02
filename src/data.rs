@@ -22,7 +22,7 @@ impl Data {
         config: &crate::config::Config,
     ) -> Result<Self, Box<dyn std::error::Error>> {
         const DATE_FORMAT: &str = "%Y-%m-%d";
-        log::debug!("Config: {:?}", &config);
+        log::debug!("Config: {:#?}", &config);
 
         let from_date = config.from.date_from_timeframe(&octocrab, &config).await?;
         let to_date = config.to.date_from_timeframe(&octocrab, &config).await?;
