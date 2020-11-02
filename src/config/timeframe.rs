@@ -47,7 +47,7 @@ impl Timeframe {
 
                 releases
                     .iter()
-                    .nth((number-1) as usize)
+                    .nth(*number as usize)
                     .expect(&format!("Expected at least {} releases, but only {} found.", number, releases.len()))
                     .created_at
             }
@@ -66,17 +66,23 @@ impl<'de> serde::Deserialize<'de> for Timeframe {
         D: serde::Deserializer<'de>,
     {
         static REGEX: once_cell::sync::Lazy<regex::Regex> = once_cell::sync::Lazy::new(|| {
-            regex::Regex::new(r"release:(?:(?:latest)|(\S+))").unwrap()
+            regex::Regex::new(r"release:(?:(?:latest(-\d+)?)|(\S+))").unwrap()
         });
 
         if let Ok(s) = String::deserialize(de) {
             if let Ok(d) = s.parse() {
                 Ok(Timeframe::Date(DateKind::Absolute(d)))
             } else if let Some(c) = REGEX.captures(&s) {
-                Ok(if let Some(tag) = c.get(1).map(|c| c.as_str().to_owned()) {
+                Ok(if s.starts_with("release:latest") {
+                    if let Some(number) = c.get(1).and_then(|c| c.as_str().parse::<isize>().ok()).map(|n| n.abs() as u8) {
+                        Timeframe::Release(ReleaseKind::RelativeFromLast(number))
+                    } else {
+                        Timeframe::Release(ReleaseKind::Latest)
+                    }
+                } else if let Some(tag) = c.get(1).map(|c| c.as_str().to_owned()) {
                     Timeframe::Release(ReleaseKind::Absolute(tag))
                 } else {
-                    Timeframe::Release(ReleaseKind::Latest)
+                    unreachable!()
                 })
             } else if s == "today" {
                 Ok(Timeframe::Date(DateKind::Today))

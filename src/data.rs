@@ -1,18 +1,23 @@
 use std::collections::HashMap;
 
+use octocrab::models::pulls::PullRequest;
+
 #[derive(Debug, serde::Serialize)]
 pub struct Data {
-    version: String,
-    title: String,
+    categories: HashMap<String, Vec<PullRequest>>,
     date: String,
-    categories: HashMap<String, Vec<serde_json::Value>>,
-    prs: Vec<serde_json::Value>,
     includes: Vec<Data>,
+    owner: String,
+    prs: Vec<PullRequest>,
+    repo: String,
+    title: String,
+    version: String,
 }
 
 impl Data {
     #[async_recursion::async_recursion]
     pub async fn from_config(version: String, config: &crate::config::Config) -> Result<Self, Box<dyn std::error::Error>> {
+        const DATE_FORMAT: &str = "%Y-%m-%d";
         let octocrab = octocrab::instance();
         log::debug!("Config: {:?}", &config);
 
@@ -23,10 +28,15 @@ impl Data {
             panic!("`to` ({}) date is earlier than `from` ({}) date.", from_date, to_date);
         }
 
-        log::info!("Getting PRs from {} to {}...", from_date, to_date);
+        log::info!(
+            "Getting PRs from `{owner}/{repo}` {from} to {to}...",
+            owner = config.owner,
+            repo = config.repo,
+            from = from_date.format(DATE_FORMAT),
+            to = to_date.format(DATE_FORMAT),
+        );
 
         let repo = format!("{}/{}", config.owner, config.repo);
-        const DATE_FORMAT: &str = "%Y-%m-%d";
         let date_range = format!("{}..{}", from_date.format(DATE_FORMAT), to_date.format(DATE_FORMAT));
         let query_string = format!("repo:{} is:pr is:merged merged:{}", repo, date_range);
         let page = octocrab.search()
@@ -43,7 +53,7 @@ impl Data {
         }
 
         let mut pulls = Vec::new();
-        let mut categories: HashMap<String, Vec<serde_json::Value>> = HashMap::new();
+        let mut categories: HashMap<_, Vec<_>> = HashMap::new();
 
         'issues: for issue in issues {
             if issue.labels.iter().any(|l| config.skip_labels.is_match(&l.name)) {
@@ -52,14 +62,16 @@ impl Data {
 
             for category in &config.categories {
                 if issue.labels.iter().any(|l| category.labels.is_match(&l.name)) {
+                    let body = octocrab._get(issue.pull_request.unwrap().url.clone(), None::<&()>).await?.text().await?;
                     categories.entry(category.title.clone())
                         .or_default()
-                        .push(octocrab._get(issue.pull_request.unwrap().url.clone(), None::<&()>).await?.json().await?);
+                        .push(serde_json::from_str(&body)?);
                     continue 'issues;
                 }
             }
 
-            pulls.push(octocrab._get(issue.pull_request.unwrap().url.clone(), None::<&()>).await?.json().await?);
+            let body = octocrab._get(issue.pull_request.unwrap().url.clone(), None::<&()>).await?.text().await?;
+            pulls.push(serde_json::from_str(&body)?);
         }
 
         let mut includes = Vec::new();
@@ -69,6 +81,8 @@ impl Data {
 
         Ok(Self {
             version: version,
+            owner: config.owner.clone(),
+            repo: config.repo.clone(),
             title: config.title.clone().unwrap_or_else(|| config.repo.clone()),
             date: to_date.format(&config.date_format).to_string(),
             categories,

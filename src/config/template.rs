@@ -25,7 +25,7 @@ impl<'de> Deserialize<'de> for Template {
         impl<'de> serde::de::Visitor<'de> for TemplateVisitor {
             type Value = Template;
 
-            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 formatter.write_str("a map with either `path` pointing to a template file, or `string`")
             }
 

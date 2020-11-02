@@ -1,17 +1,36 @@
-owner = "XAMPPRocky"
-repo = "tokei"
-from = "release:latest"
-to = "today"
+owner = "rust-lang"
+repo = "rust"
+from = "release:latest-1"
+to = "release:latest"
 date-format = "%Y-%m-%d"
-# skip-labels = ["dependencies"]
+skip-labels = [
+    "beta-nominated",
+    "beta-accepted",
+    "stable-nominated",
+    "stable-accepted",
+    "rollup",
+]
+
+[[categories]]
+title = "Relnotes"
+labels = ["relnotes"]
+
+[[categories]]
+title = "Language"
+labels = ["T-lang"]
 
 [[categories]]
 title = "Compiler"
 labels = ["T-compiler"]
 
+[[categories]]
+title = "Libraries"
+labels = ["T-libs"]
+
 [[includes]]
 owner = "rust-lang"
-repo = "rust"
+repo = "cargo"
+title = "Cargo"
 use-parent-for-timeframe = true
 
 [template]
@@ -24,33 +43,39 @@ Version {{version}} ({{date}})
 -----------------------
 
     {% for pr in prs %}
-- [{{pr.title}}]({{pr.html_url}})
+- [{{ pr.title }}][{{ pr.number }}]
     {%- endfor %}
 {% endfor %}
 
-{% for data in includes %}
-{{ data.title }}
+{% for include in includes %}
+{{ include.title }}
 -----------------------
 
-    {% for pr in data.prs %}
-- [{{pr.title}}]({{pr.html_url}})
+    {% for pr in include.prs %}
+- [{{ pr.title }}][{{ include.repo }}/{{ pr.number }}]
     {%- endfor %}
 {% endfor %}
 
 UNSORTED
 --------
 {% for pr in prs -%}
-- [{{pr.title}}]({{pr.html_url}})
+- [{{ pr.title }}][{{ pr.number }}]
 {% endfor %}
 
 {% for _, prs in categories %}
 {% for pr in prs -%}
-[{{pr.number}}]: {{pr.html_url}}
+[{{ pr.number }}]: {{ pr.html_url }}
 {% endfor %}
 {%- endfor %}
 
-{% for pr in prs -%}
+{%- for pr in prs -%}
 [{{pr.number}}]: {{pr.html_url}}
+{% endfor -%}
+
+{%- for include in includes -%}
+{% for pr in include.prs -%}
+[{{ include.repo }}/{{pr.number}}]: {{pr.html_url}}
+{% endfor %}
 {% endfor %}
 """
 
