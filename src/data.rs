@@ -16,7 +16,10 @@ pub struct Data {
 
 impl Data {
     #[async_recursion::async_recursion]
-    pub async fn from_config(version: String, config: &crate::config::Config) -> Result<Self, Box<dyn std::error::Error>> {
+    pub async fn from_config(
+        version: String,
+        config: &crate::config::Config,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         const DATE_FORMAT: &str = "%Y-%m-%d";
         let octocrab = octocrab::instance();
         log::debug!("Config: {:?}", &config);
@@ -25,7 +28,10 @@ impl Data {
         let to_date = config.to.date_from_timeframe(&octocrab, &config).await?;
 
         if from_date > to_date {
-            panic!("`to` ({}) date is earlier than `from` ({}) date.", from_date, to_date);
+            panic!(
+                "`to` ({}) date is earlier than `from` ({}) date.",
+                from_date, to_date
+            );
         }
 
         log::info!(
@@ -37,9 +43,14 @@ impl Data {
         );
 
         let repo = format!("{}/{}", config.owner, config.repo);
-        let date_range = format!("{}..{}", from_date.format(DATE_FORMAT), to_date.format(DATE_FORMAT));
+        let date_range = format!(
+            "{}..{}",
+            from_date.format(DATE_FORMAT),
+            to_date.format(DATE_FORMAT)
+        );
         let query_string = format!("repo:{} is:pr is:merged merged:{}", repo, date_range);
-        let page = octocrab.search()
+        let page = octocrab
+            .search()
             .issues_and_pull_requests(&query_string)
             .per_page(100u8)
             .send()
@@ -56,21 +67,38 @@ impl Data {
         let mut categories: HashMap<_, Vec<_>> = HashMap::new();
 
         'issues: for issue in issues {
-            if issue.labels.iter().any(|l| config.skip_labels.is_match(&l.name)) {
+            if issue
+                .labels
+                .iter()
+                .any(|l| config.skip_labels.is_match(&l.name))
+            {
                 continue;
             }
 
             for category in &config.categories {
-                if issue.labels.iter().any(|l| category.labels.is_match(&l.name)) {
-                    let body = octocrab._get(issue.pull_request.unwrap().url.clone(), None::<&()>).await?.text().await?;
-                    categories.entry(category.title.clone())
+                if issue
+                    .labels
+                    .iter()
+                    .any(|l| category.labels.is_match(&l.name))
+                {
+                    let body = octocrab
+                        ._get(issue.pull_request.unwrap().url.clone(), None::<&()>)
+                        .await?
+                        .text()
+                        .await?;
+                    categories
+                        .entry(category.title.clone())
                         .or_default()
                         .push(serde_json::from_str(&body)?);
                     continue 'issues;
                 }
             }
 
-            let body = octocrab._get(issue.pull_request.unwrap().url.clone(), None::<&()>).await?.text().await?;
+            let body = octocrab
+                ._get(issue.pull_request.unwrap().url.clone(), None::<&()>)
+                .await?
+                .text()
+                .await?;
             pulls.push(serde_json::from_str(&body)?);
         }
 
@@ -90,5 +118,4 @@ impl Data {
             prs: pulls,
         })
     }
-
 }

@@ -19,14 +19,18 @@ impl<'de> Deserialize<'de> for Template {
     {
         #[derive(Deserialize)]
         #[serde(field_identifier, rename_all = "lowercase")]
-        enum Field { Path, String }
+        enum Field {
+            Path,
+            String,
+        }
         struct TemplateVisitor;
 
         impl<'de> serde::de::Visitor<'de> for TemplateVisitor {
             type Value = Template;
 
             fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-                formatter.write_str("a map with either `path` pointing to a template file, or `string`")
+                formatter
+                    .write_str("a map with either `path` pointing to a template file, or `string`")
             }
 
             fn visit_map<V>(self, mut map: V) -> Result<Template, V::Error>
@@ -59,7 +63,9 @@ impl<'de> Deserialize<'de> for Template {
                 } else if let Some(s) = string {
                     s
                 } else {
-                    return Err(de::Error::custom("template file not found and no `string` key provided."))
+                    return Err(de::Error::custom(
+                        "template file not found and no `string` key provided.",
+                    ));
                 };
 
                 Ok(Template(string))
@@ -70,5 +76,3 @@ impl<'de> Deserialize<'de> for Template {
         deserializer.deserialize_struct("Duration", FIELDS, TemplateVisitor)
     }
 }
-
-

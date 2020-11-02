@@ -1,11 +1,11 @@
-mod timeframe;
 mod template;
+mod timeframe;
 
 use regex::RegexSet;
 use serde::Deserialize;
 
-pub use timeframe::*;
 pub use template::*;
+pub use timeframe::*;
 
 fn default_from() -> Timeframe {
     Timeframe::Release(ReleaseKind::Latest)
@@ -29,11 +29,14 @@ fn default_regex_set() -> RegexSet {
     RegexSet::new(EMPTY).unwrap()
 }
 
-fn from_optional_regex_set<'de, D>(de: D) -> Result<Option<RegexSet>, D::Error> where D: serde::Deserializer<'de> {
+fn from_optional_regex_set<'de, D>(de: D) -> Result<Option<RegexSet>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
     let list: Option<Vec<String>> = <_>::deserialize(de)?;
 
     if list.is_none() {
-        return Ok(None)
+        return Ok(None);
     }
 
     regex::RegexSet::new(list.unwrap())
@@ -41,7 +44,10 @@ fn from_optional_regex_set<'de, D>(de: D) -> Result<Option<RegexSet>, D::Error> 
         .map_err(|_| serde::de::Error::custom("Category labels were not valid regular expressions"))
 }
 
-fn from_regex_set<'de, D>(de: D) -> Result<RegexSet, D::Error> where D: serde::Deserializer<'de> {
+fn from_regex_set<'de, D>(de: D) -> Result<RegexSet, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
     let regex_set = from_optional_regex_set(de)?;
 
     if regex_set.is_none() {
@@ -93,7 +99,8 @@ pub struct IncludeConfig {
 
 impl Config {
     pub fn includes(&self) -> Vec<Self> {
-        self.includes.iter()
+        self.includes
+            .iter()
             .cloned()
             .map(|ic| {
                 let parent = if ic.use_parent_for_timeframe {

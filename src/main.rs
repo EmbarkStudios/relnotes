@@ -55,7 +55,8 @@ struct Cli {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     env_logger::init_from_env(
-        env_logger::Env::default().filter_or(env_logger::DEFAULT_FILTER_ENV, "info"));
+        env_logger::Env::default().filter_or(env_logger::DEFAULT_FILTER_ENV, "info"),
+    );
     let mut builder = octocrab::Octocrab::builder();
     let token = std::env::var("GITHUB_TOKEN").ok();
     if token.is_some() {
@@ -64,7 +65,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     octocrab::initialise(builder)?;
 
     let cli = Cli::from_args();
-    let path = cli.config.unwrap_or_else(|| PathBuf::from("./relnotes.toml"));
+    let path = cli
+        .config
+        .unwrap_or_else(|| PathBuf::from("./relnotes.toml"));
 
     let config = {
         let string = tokio::fs::read_to_string(path.canonicalize()?).await?;
@@ -72,8 +75,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let data = data::Data::from_config(cli.version, &config).await?;
-    println!("{}", tera::Tera::one_off(&config.template, &tera::Context::from_serialize(data)?, false)?);
+    println!(
+        "{}",
+        tera::Tera::one_off(
+            &config.template,
+            &tera::Context::from_serialize(data)?,
+            false
+        )?
+    );
 
     Ok(())
 }
-
