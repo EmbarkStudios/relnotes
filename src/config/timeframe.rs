@@ -26,7 +26,7 @@ impl Timeframe {
         &self,
         octocrab: &octocrab::Octocrab,
         config: &Config,
-    ) -> Result<chrono::DateTime<chrono::Utc>, Box<dyn std::error::Error>> {
+    ) -> eyre::Result<chrono::DateTime<chrono::Utc>> {
         let (owner, repo) = config
             .parent
             .clone()

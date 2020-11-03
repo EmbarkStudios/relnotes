@@ -15,6 +15,10 @@ fn default_to() -> Timeframe {
     Timeframe::Date(DateKind::Today)
 }
 
+fn default_date_format() -> String {
+    String::from("%Y-%m-%d")
+}
+
 #[derive(Clone, Debug, Deserialize)]
 pub struct Category {
     pub title: String,
@@ -67,6 +71,7 @@ pub struct Config {
     pub owner: String,
     pub repo: String,
     pub title: Option<String>,
+    #[serde(default = "default_date_format")]
     pub date_format: String,
     #[serde(deserialize_with = "from_regex_set")]
     #[serde(default = "default_regex_set")]
@@ -78,6 +83,24 @@ pub struct Config {
     includes: Vec<IncludeConfig>,
     #[serde(default)]
     parent: Option<(String, String)>,
+}
+
+impl Config {
+    pub fn new(owner: String, repo: String) -> Self {
+        Self {
+            categories: Vec::new(),
+            date_format: default_date_format(),
+            from: default_from(),
+            includes: Vec::new(),
+            owner,
+            parent: None,
+            repo,
+            skip_labels: default_regex_set(),
+            template: Template::default(),
+            title: None,
+            to: default_to(),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Deserialize)]

@@ -39,7 +39,6 @@ mod config;
 mod data;
 
 use std::path::PathBuf;
-use std::sync::Arc;
 
 use structopt::StructOpt;
 use octocrab::Octocrab;
@@ -53,21 +52,23 @@ struct Cli {
     /// The GitHub authenication token. (Default: `None`)
     #[structopt(short, long)]
     token: Option<String>,
-    /// The version number for the release.
-    version: String,
+    /// The repository and new version to generate release notes in the
+    /// form `owner/repo@version`. `owner/repo@` is optional if provided
+    /// a configuration file.
+    repo_and_version: String,
 }
 
-fn initialise_github(token: Option<String>) -> Result<Arc<Octocrab>, Box<dyn std::error::Error>> {
+fn initialise_github(token: Option<String>) -> eyre::Result<Octocrab> {
     let mut builder = octocrab::Octocrab::builder();
     let token = token.or_else(|| std::env::var("GITHUB_TOKEN").ok());
     if token.is_some() {
         builder = builder.personal_token(token.unwrap());
     }
-    Ok(octocrab::initialise(builder)?)
+    Ok(builder.build()?)
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> eyre::Result<()> {
     env_logger::init_from_env(
         env_logger::Env::default().filter_or(env_logger::DEFAULT_FILTER_ENV, "info"),
     );
@@ -77,13 +78,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .config
         .unwrap_or_else(|| PathBuf::from("./relnotes.toml"));
 
-    let config = {
-        let string = tokio::fs::read_to_string(path.canonicalize()?).await?;
-        toml::from_str::<config::Config>(&string).unwrap()
+    let (config, version) = if let Ok(path) = path.canonicalize() {
+        log::info!("Using configuration file found at `{}`.", path.display());
+        log::info!("Using `{}` as version number.", cli.repo_and_version);
+        let string = tokio::fs::read_to_string(path).await?;
+        (toml::from_str::<config::Config>(&string)?, cli.repo_and_version)
+    } else {
+        let regex = regex::Regex::new(r"(?P<owner>\S+)/(?P<repo>\S+)@(?P<version>\S+)").unwrap();
+        let cap = regex.captures(&cli.repo_and_version)
+            .ok_or_else(|| eyre::eyre!("<repo_and_version> must be in `owner/repo@version` format."))?;
+        let owner = cap.name("owner").unwrap().as_str().to_owned();
+        let repo = cap.name("repo").unwrap().as_str().to_owned();
+        let version = cap.name("version").unwrap().as_str().to_owned();
+
+        (config::Config::new(owner, repo), version)
     };
 
     let octocrab = initialise_github(cli.token)?;
-    let data = data::Data::from_config(octocrab, cli.version, &config).await?;
+    let data = data::Data::from_config(&octocrab, version, &config).await?;
     println!(
         "{}",
         tera::Tera::one_off(

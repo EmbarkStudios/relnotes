@@ -2,8 +2,47 @@ use std::path::PathBuf;
 
 use serde::Deserialize;
 
+const DEFAULT_TEMPLATE: &str = "\
+# {{ title }} {{ version }} ({{ date }})
+
+{% for pr in prs -%}
+- [{{ pr.title }}]({{ pr.html_url }})
+{% endfor %}
+
+{%- for title, prs in categories %}
+## {{ title }}
+
+    {% for pr in prs %}
+- [{{ pr.title }}]({{ pr.html_url }})
+    {%- endfor %}
+{% endfor %}
+
+{%- for include in includes %}
+## {{ include.title }}
+
+    {% for title, prs in include.categories %}
+### {{ title }}
+
+        {%- for pr in prs %}
+- [{{ pr.title }}]({{ pr.html_url }})
+        {%- endfor %}
+
+    {%- endfor -%}
+
+    {%- for pr in include.prs %}
+- [{{ pr.title }}]({{ pr.html_url }})
+    {%- endfor %}
+
+{%- endfor %}";
+
 #[derive(Clone, Debug)]
 pub struct Template(String);
+
+impl Default for Template {
+    fn default() -> Self {
+        Self(String::from(DEFAULT_TEMPLATE))
+    }
+}
 
 impl std::ops::Deref for Template {
     type Target = str;
@@ -63,9 +102,7 @@ impl<'de> Deserialize<'de> for Template {
                 } else if let Some(s) = string {
                     s
                 } else {
-                    return Err(de::Error::custom(
-                        "template file not found and no `string` key provided.",
-                    ));
+                    DEFAULT_TEMPLATE.into()
                 };
 
                 Ok(Template(string))

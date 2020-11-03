@@ -20,3 +20,4 @@ structopt = "0.3.20"
 tera = "1.5.0"
 tokio = { version = "0.2.22", features = ["macros", "fs"] }
 toml = "0.5.7"
+eyre = "0.3.5"
