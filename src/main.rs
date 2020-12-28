@@ -46,7 +46,7 @@ use octocrab::Octocrab;
 #[derive(StructOpt)]
 /// Generate release notes for your project.
 struct Cli {
-    /// Path to the configuration file. (Default: `./relnotes.toml`)
+    /// Path to the configuration file. (Default: `None`)
     #[structopt(short, long, parse(from_os_str))]
     config: Option<PathBuf>,
     /// The GitHub authenication token. (Default: `None`)
@@ -76,9 +76,10 @@ async fn main() -> eyre::Result<()> {
     let cli = Cli::from_args();
     let path = cli
         .config
-        .unwrap_or_else(|| PathBuf::from("./relnotes.toml"));
+        .map(|path| path.canonicalize())
+        .transpose()?;
 
-    let (config, version) = if let Ok(path) = path.canonicalize() {
+    let (config, version) = if let Some(path) = path {
         log::info!("Using configuration file found at `{}`.", path.display());
         log::info!("Using `{}` as version number.", cli.repo_and_version);
         let string = tokio::fs::read_to_string(path).await?;

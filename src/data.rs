@@ -1,10 +1,11 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
-use octocrab::{Octocrab, models::pulls::PullRequest};
+use octocrab::{Octocrab, models::{User, pulls::PullRequest}};
 
 #[derive(Debug, serde::Serialize)]
 pub struct Data {
     categories: HashMap<String, Vec<PullRequest>>,
+    contributors: HashSet<User>,
     date: String,
     includes: Vec<Data>,
     owner: String,
@@ -65,6 +66,7 @@ impl Data {
 
         let mut pulls = Vec::new();
         let mut categories: HashMap<_, Vec<_>> = HashMap::new();
+        let mut contributors = HashSet::new();
 
         'issues: for issue in issues {
             if issue
@@ -94,6 +96,8 @@ impl Data {
                 }
             }
 
+            contributors.insert(issue.user.clone());
+
             let body = octocrab
                 ._get(issue.pull_request.unwrap().url.clone(), None::<&()>)
                 .await?
@@ -104,7 +108,9 @@ impl Data {
 
         let mut includes = Vec::new();
         for include in config.includes() {
-            includes.push(Self::from_config(&octocrab, version.clone(), &include).await?);
+            let config = Self::from_config(&octocrab, version.clone(), &include).await?;
+            contributors.extend(config.contributors.clone().into_iter());
+            includes.push(config);
         }
 
         Ok(Self {
@@ -116,6 +122,7 @@ impl Data {
             categories,
             includes,
             prs: pulls,
+            contributors,
         })
     }
 }

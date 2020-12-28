@@ -33,7 +33,15 @@ const DEFAULT_TEMPLATE: &str = "\
 - [{{ pr.title }}]({{ pr.html_url }})
     {%- endfor %}
 
-{%- endfor %}";
+{%- endfor %}
+
+## Contributors
+
+{% for contributor in contributors | sort(attribute=\"login\", case_sensitive=\"false\") %}
+- [{{ contributor.login }}]({{ contributor.html_url }})
+{%- endfor %}
+
+";
 
 #[derive(Clone, Debug)]
 pub struct Template(String);
