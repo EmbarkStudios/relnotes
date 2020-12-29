@@ -43,6 +43,8 @@ use std::path::PathBuf;
 use structopt::StructOpt;
 use octocrab::Octocrab;
 
+use config::timeframe::Timeframe;
+
 #[derive(StructOpt)]
 /// Generate release notes for your project.
 struct Cli {
@@ -52,6 +54,12 @@ struct Cli {
     /// The GitHub authenication token. (Default: `None`)
     #[structopt(short, long)]
     token: Option<String>,
+    /// The start of the new release timeframe. Default: `release:latest`.
+    #[structopt(long)]
+    from: Option<Timeframe>,
+    /// The end of the new release timeframe. Default: `today`.
+    #[structopt(long)]
+    to: Option<Timeframe>,
     /// The repository and new version to generate release notes in the
     /// form `owner/repo@version`. `owner/repo@` is optional if provided
     /// a configuration file.
@@ -79,9 +87,8 @@ async fn main() -> eyre::Result<()> {
         .map(|path| path.canonicalize())
         .transpose()?;
 
-    let (config, version) = if let Some(path) = path {
+    let (mut config, version) = if let Some(path) = path {
         log::info!("Using configuration file found at `{}`.", path.display());
-        log::info!("Using `{}` as version number.", cli.repo_and_version);
         let string = tokio::fs::read_to_string(path).await?;
         (toml::from_str::<config::Config>(&string)?, cli.repo_and_version)
     } else {
@@ -95,6 +102,10 @@ async fn main() -> eyre::Result<()> {
         (config::Config::new(owner, repo), version)
     };
 
+    config.from = cli.from.unwrap_or(config.from);
+    config.to = cli.to.unwrap_or(config.to);
+
+    log::info!("Using `{}` as version number.", version);
     let octocrab = initialise_github(cli.token)?;
     let data = data::Data::from_config(&octocrab, version, &config).await?;
     println!(

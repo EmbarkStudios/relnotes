@@ -1,5 +1,5 @@
-mod template;
-mod timeframe;
+pub mod template;
+pub mod timeframe;
 
 use regex::RegexSet;
 use serde::Deserialize;
@@ -15,8 +15,10 @@ fn default_to() -> Timeframe {
     Timeframe::Date(DateKind::Today)
 }
 
+pub const DATE_FORMAT: &str = "%Y-%m-%d";
+
 fn default_date_format() -> String {
-    String::from("%Y-%m-%d")
+    String::from(DATE_FORMAT)
 }
 
 #[derive(Clone, Debug, Deserialize)]

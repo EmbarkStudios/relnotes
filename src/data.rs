@@ -2,6 +2,8 @@ use std::collections::{HashMap, HashSet};
 
 use octocrab::{Octocrab, models::{User, pulls::PullRequest}};
 
+use crate::config::DATE_FORMAT;
+
 #[derive(Debug, serde::Serialize)]
 pub struct Data {
     categories: HashMap<String, Vec<PullRequest>>,
@@ -22,7 +24,6 @@ impl Data {
         version: String,
         config: &crate::config::Config,
     ) -> eyre::Result<Self> {
-        const DATE_FORMAT: &str = "%Y-%m-%d";
         log::debug!("Config: {:#?}", &config);
 
         let from_date = config.from.date_from_timeframe(&octocrab, &config).await?;

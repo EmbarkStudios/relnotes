@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{Date, DateTime, NaiveDate, Utc};
 
 use super::Config;
 
@@ -26,7 +26,7 @@ impl Timeframe {
         &self,
         octocrab: &octocrab::Octocrab,
         config: &Config,
-    ) -> eyre::Result<chrono::DateTime<chrono::Utc>> {
+    ) -> eyre::Result<DateTime<Utc>> {
         let (owner, repo) = config
             .parent
             .clone()
@@ -76,9 +76,47 @@ impl Timeframe {
                     .await?
                     .published_at
             }
-            Timeframe::Date(DateKind::Today) => chrono::Utc::now(),
+            Timeframe::Date(DateKind::Today) => Utc::now(),
             Timeframe::Date(DateKind::Absolute(time)) => time.clone(),
         })
+    }
+}
+
+impl std::str::FromStr for Timeframe {
+    type Err = eyre::Report;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        static REGEX: once_cell::sync::Lazy<regex::Regex> = once_cell::sync::Lazy::new(|| {
+            regex::Regex::new(r"release:(?:(?:latest(-\d+)?)|(\S+))").unwrap()
+        });
+
+        if let Ok(datetime) = s.parse() {
+            Ok(Timeframe::Date(DateKind::Absolute(datetime)))
+        } else if let Ok(date) = s.parse::<NaiveDate>() {
+            Ok(Timeframe::Date(DateKind::Absolute(Date::from_utc(date, Utc).and_hms(0, 0, 0))))
+        } else if let Some(c) = REGEX.captures(&s) {
+            Ok(if s.starts_with("release:latest") {
+                if let Some(number) = c
+                    .get(1)
+                        .and_then(|c| c.as_str().parse::<isize>().ok())
+                        .map(|n| n.abs() as u8)
+                {
+                    Timeframe::Release(ReleaseKind::RelativeFromLast(number))
+                } else {
+                    Timeframe::Release(ReleaseKind::Latest)
+                }
+            } else if let Some(tag) = c.get(1).map(|c| c.as_str().to_owned()) {
+                Timeframe::Release(ReleaseKind::Absolute(tag))
+            } else {
+                unreachable!()
+            })
+        } else if s == "today" {
+            Ok(Timeframe::Date(DateKind::Today))
+        } else {
+            Err(eyre::eyre!(
+                "Timeframe must be a date or relative to the last release.",
+            ))
+        }
     }
 }
 
@@ -87,36 +125,8 @@ impl<'de> serde::Deserialize<'de> for Timeframe {
     where
         D: serde::Deserializer<'de>,
     {
-        static REGEX: once_cell::sync::Lazy<regex::Regex> = once_cell::sync::Lazy::new(|| {
-            regex::Regex::new(r"release:(?:(?:latest(-\d+)?)|(\S+))").unwrap()
-        });
-
         if let Ok(s) = String::deserialize(de) {
-            if let Ok(d) = s.parse() {
-                Ok(Timeframe::Date(DateKind::Absolute(d)))
-            } else if let Some(c) = REGEX.captures(&s) {
-                Ok(if s.starts_with("release:latest") {
-                    if let Some(number) = c
-                        .get(1)
-                        .and_then(|c| c.as_str().parse::<isize>().ok())
-                        .map(|n| n.abs() as u8)
-                    {
-                        Timeframe::Release(ReleaseKind::RelativeFromLast(number))
-                    } else {
-                        Timeframe::Release(ReleaseKind::Latest)
-                    }
-                } else if let Some(tag) = c.get(1).map(|c| c.as_str().to_owned()) {
-                    Timeframe::Release(ReleaseKind::Absolute(tag))
-                } else {
-                    unreachable!()
-                })
-            } else if s == "today" {
-                Ok(Timeframe::Date(DateKind::Today))
-            } else {
-                Err(serde::de::Error::custom(
-                    "Timeframe must be a date or relative to the last release.",
-                ))
-            }
+            s.parse().map_err(serde::de::Error::custom)
         } else {
             Err(serde::de::Error::custom("Timeframe must be a string type."))
         }
