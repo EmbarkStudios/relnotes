@@ -60,6 +60,9 @@ struct Cli {
     /// The end of the new release timeframe. Default: `today`.
     #[structopt(long)]
     to: Option<Timeframe>,
+    /// Skip PRs if their labels match the regular expressions.
+    #[structopt(long)]
+    skip_labels: Option<Vec<String>>,
     /// The repository and new version to generate release notes in the
     /// form `owner/repo@version`. `owner/repo@` is optional if provided
     /// a configuration file.
@@ -104,6 +107,7 @@ async fn main() -> eyre::Result<()> {
 
     config.from = cli.from.unwrap_or(config.from);
     config.to = cli.to.unwrap_or(config.to);
+    config.skip_labels = cli.skip_labels.map(regex::RegexSet::new).transpose()?.unwrap_or(config.skip_labels);
 
     log::info!("Using `{}` as version number.", version);
     let octocrab = initialise_github(cli.token)?;

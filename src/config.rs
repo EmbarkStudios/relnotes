@@ -119,7 +119,7 @@ pub struct IncludeConfig {
     pub skip_labels: Option<RegexSet>,
     pub categories: Option<Vec<Category>>,
     #[serde(default)]
-    pub use_parent_for_timeframe: bool,
+    pub uses_root_timeframe: bool,
 }
 
 impl Config {
@@ -128,7 +128,7 @@ impl Config {
             .iter()
             .cloned()
             .map(|ic| {
-                let parent = if ic.use_parent_for_timeframe {
+                let parent = if ic.uses_root_timeframe {
                     Some((self.owner.clone(), self.repo.clone()))
                 } else {
                     None
