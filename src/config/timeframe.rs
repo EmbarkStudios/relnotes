@@ -93,13 +93,15 @@ impl std::str::FromStr for Timeframe {
         if let Ok(datetime) = s.parse() {
             Ok(Timeframe::Date(DateKind::Absolute(datetime)))
         } else if let Ok(date) = s.parse::<NaiveDate>() {
-            Ok(Timeframe::Date(DateKind::Absolute(Date::from_utc(date, Utc).and_hms(0, 0, 0))))
+            Ok(Timeframe::Date(DateKind::Absolute(
+                Date::from_utc(date, Utc).and_hms(0, 0, 0),
+            )))
         } else if let Some(c) = REGEX.captures(&s) {
             Ok(if s.starts_with("release:latest") {
                 if let Some(number) = c
                     .get(1)
-                        .and_then(|c| c.as_str().parse::<isize>().ok())
-                        .map(|n| n.abs() as u8)
+                    .and_then(|c| c.as_str().parse::<isize>().ok())
+                    .map(|n| n.abs() as u8)
                 {
                     Timeframe::Release(ReleaseKind::RelativeFromLast(number))
                 } else {

@@ -40,8 +40,8 @@ mod data;
 
 use std::path::PathBuf;
 
-use structopt::StructOpt;
 use octocrab::Octocrab;
+use structopt::StructOpt;
 
 use config::timeframe::Timeframe;
 
@@ -85,19 +85,20 @@ async fn main() -> eyre::Result<()> {
     );
 
     let cli = Cli::from_args();
-    let path = cli
-        .config
-        .map(|path| path.canonicalize())
-        .transpose()?;
+    let path = cli.config.map(|path| path.canonicalize()).transpose()?;
 
     let (mut config, version) = if let Some(path) = path {
         log::info!("Using configuration file found at `{}`.", path.display());
         let string = tokio::fs::read_to_string(path).await?;
-        (toml::from_str::<config::Config>(&string)?, cli.repo_and_version)
+        (
+            toml::from_str::<config::Config>(&string)?,
+            cli.repo_and_version,
+        )
     } else {
         let regex = regex::Regex::new(r"(?P<owner>\S+)/(?P<repo>\S+)@(?P<version>\S+)").unwrap();
-        let cap = regex.captures(&cli.repo_and_version)
-            .ok_or_else(|| eyre::eyre!("<repo_and_version> must be in `owner/repo@version` format."))?;
+        let cap = regex.captures(&cli.repo_and_version).ok_or_else(|| {
+            eyre::eyre!("<repo_and_version> must be in `owner/repo@version` format.")
+        })?;
         let owner = cap.name("owner").unwrap().as_str().to_owned();
         let repo = cap.name("repo").unwrap().as_str().to_owned();
         let version = cap.name("version").unwrap().as_str().to_owned();
@@ -107,7 +108,11 @@ async fn main() -> eyre::Result<()> {
 
     config.from = cli.from.unwrap_or(config.from);
     config.to = cli.to.unwrap_or(config.to);
-    config.skip_labels = cli.skip_labels.map(regex::RegexSet::new).transpose()?.unwrap_or(config.skip_labels);
+    config.skip_labels = cli
+        .skip_labels
+        .map(regex::RegexSet::new)
+        .transpose()?
+        .unwrap_or(config.skip_labels);
 
     log::info!("Using `{}` as version number.", version);
     let octocrab = initialise_github(cli.token)?;

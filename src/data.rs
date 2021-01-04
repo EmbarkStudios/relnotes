@@ -1,6 +1,9 @@
 use std::collections::{HashMap, HashSet};
 
-use octocrab::{Octocrab, models::{User, pulls::PullRequest}};
+use octocrab::{
+    models::{pulls::PullRequest, User},
+    Octocrab,
+};
 
 use crate::config::DATE_FORMAT;
 
