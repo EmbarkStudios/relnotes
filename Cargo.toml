@@ -1,6 +1,6 @@
 [package]
 name = "relnotes"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Erin Power <erin.power@embark-studios.com>"]
 edition = "2018"
 
