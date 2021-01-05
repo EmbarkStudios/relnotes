@@ -2,6 +2,8 @@
 name = "relnotes"
 version = "0.1.1"
 authors = ["Erin Power <erin.power@embark-studios.com>"]
+description = "A tool to automatically generate release notes for your project."
+license = "MIT OR Apache-2.0"
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
