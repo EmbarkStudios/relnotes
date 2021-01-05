@@ -19,6 +19,8 @@ Relnotes is a tool to automatically generate a file containing every merged pull
 - Supports collecting changes from multiple repositories.
 - Uses [Tera] templates for release notes format.
 
+[tera]: https://tera.netlify.app
+
 ## How It Works
 The basic usage of `relnotes` works by providing the repository and version of new the release. For example if you wanted the release notes of a potential new `0.3.0` release of [rust-gpu], you would run the following.
 
