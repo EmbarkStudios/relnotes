@@ -44,7 +44,8 @@ where
     if list.is_none() {
         return Ok(None);
     }
-
+    #[allow(clippy::map_err_ignore)]
+    // ignore because we cannot implement a foreign trait on a foreign struct
     regex::RegexSet::new(list.unwrap())
         .map(Some)
         .map_err(|_| serde::de::Error::custom("Category labels were not valid regular expressions"))
@@ -56,10 +57,10 @@ where
 {
     let regex_set = from_optional_regex_set(de)?;
 
-    if regex_set.is_none() {
-        Err(serde::de::Error::custom("Label RegexSet not found."))
+    if let Some(regex_set) = regex_set {
+        Ok(regex_set)
     } else {
-        Ok(regex_set.unwrap())
+        Err(serde::de::Error::custom("Label RegexSet not found."))
     }
 }
 

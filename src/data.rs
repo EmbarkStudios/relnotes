@@ -29,8 +29,8 @@ impl Data {
     ) -> eyre::Result<Self> {
         log::debug!("Config: {:#?}", &config);
 
-        let from_date = config.from.date_from_timeframe(&octocrab, &config).await?;
-        let to_date = config.to.date_from_timeframe(&octocrab, &config).await?;
+        let from_date = config.from.date_from_timeframe(octocrab, config).await?;
+        let to_date = config.to.date_from_timeframe(octocrab, config).await?;
 
         if from_date > to_date {
             panic!(
@@ -112,13 +112,13 @@ impl Data {
 
         let mut includes = Vec::new();
         for include in config.includes() {
-            let config = Self::from_config(&octocrab, version.clone(), &include).await?;
+            let config = Self::from_config(octocrab, version.clone(), &include).await?;
             contributors.extend(config.contributors.clone().into_iter());
             includes.push(config);
         }
 
         Ok(Self {
-            version: version,
+            version,
             owner: config.owner.clone(),
             repo: config.repo.clone(),
             title: config.title.clone().unwrap_or_else(|| config.repo.clone()),

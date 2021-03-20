@@ -106,7 +106,7 @@ impl<'de> Deserialize<'de> for Template {
                 }
 
                 let string = if let Some(path) = path {
-                    std::fs::read_to_string(path).map_err(|e| de::Error::custom(e))?
+                    std::fs::read_to_string(path).map_err(de::Error::custom)?
                 } else if let Some(s) = string {
                     s
                 } else {
@@ -117,7 +117,7 @@ impl<'de> Deserialize<'de> for Template {
             }
         }
 
-        const FIELDS: &'static [&'static str] = &["path", "string"];
-        deserializer.deserialize_struct("Duration", FIELDS, TemplateVisitor)
+        const FIELDS: [&str; 2] = ["path", "string"];
+        deserializer.deserialize_struct("Duration", &FIELDS, TemplateVisitor)
     }
 }

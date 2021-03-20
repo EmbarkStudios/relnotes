@@ -59,13 +59,14 @@ impl Timeframe {
                 releases.sort_by(|a, b| b.created_at.cmp(&a.created_at));
 
                 releases
-                    .iter()
-                    .nth(*number as usize)
-                    .expect(&format!(
-                        "Expected at least {} releases, but only {} found.",
-                        number,
-                        releases.len()
-                    ))
+                    .get(*number as usize)
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "Expected at least {} releases, but only {} found.",
+                            number,
+                            releases.len()
+                        )
+                    })
                     .created_at
             }
             Timeframe::Release(ReleaseKind::Absolute(tag)) => {
@@ -77,7 +78,7 @@ impl Timeframe {
                     .published_at
             }
             Timeframe::Date(DateKind::Today) => Utc::now(),
-            Timeframe::Date(DateKind::Absolute(time)) => time.clone(),
+            Timeframe::Date(DateKind::Absolute(time)) => *time,
         })
     }
 }
@@ -96,7 +97,7 @@ impl std::str::FromStr for Timeframe {
             Ok(Timeframe::Date(DateKind::Absolute(
                 Date::from_utc(date, Utc).and_hms(0, 0, 0),
             )))
-        } else if let Some(c) = REGEX.captures(&s) {
+        } else if let Some(c) = REGEX.captures(s) {
             Ok(if s.starts_with("release:latest") {
                 if let Some(number) = c
                     .get(1)
